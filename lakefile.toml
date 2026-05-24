@@ -2,5 +2,9 @@ name = "leanslop"
 version = "0.1.0"
 defaultTargets = ["LeanSlop"]
 
+[[require]]
+name = "leanCurl"
+source = { type="git", url="https://github.com/bergmannjg/leanCurl", rev="main" }
+
 [[lean_lib]]
 name = "LeanSlop"

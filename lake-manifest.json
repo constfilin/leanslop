@@ -1,5 +1,16 @@
-{"version": "1.1.0",
+{"version": "1.2.0",
  "packagesDir": ".lake/packages",
- "packages": [],
- "name": "«lean-slop»",
- "lakeDir": ".lake"}
+ "packages":
+ [{"url": "https://github.com/bergmannjg/leanCurl",
+   "type": "git",
+   "subDir": null,
+   "scope": "",
+   "rev": "d725fede14f67acc746c18eaec962f6461dee5cb",
+   "name": "leanCurl",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "main",
+   "inherited": false,
+   "configFile": "lakefile.lean"}],
+ "name": "leanslop",
+ "lakeDir": ".lake",
+ "fixedToolchain": false}

@@ -5,6 +5,8 @@ import LeanSlop.Types
 import LeanSlop.Options
 import LeanSlop.Prompt
 import Lean.Elab
+import Curl
+
 open Lean Elab Meta
 
 namespace LeanSlop.API
@@ -56,33 +58,36 @@ def makeBaseRequest (model: String) (messages: List LeanSlop.Message) : MetaM (T
       messages := messages
    }
   let payload := toJson request
-  let mut args := #[
-      "-s",
-      "-X","POST", params.url,
-      "-H",
-        if params.provider == .openai
-        then s!"Authorization: Bearer {params.api_key}"
-        else s!"x-api-key: {params.api_key}",
-      "-H","Content-Type: application/json",
-      "-d", payload.compress
-    ]
+  let response ← IO.mkRef { : IO.FS.Stream.Buffer}
+  let curl ← Curl.curl_easy_init
+  Curl.curl_set_option curl (Curl.CurlOption.VERBOSE 0)
+  Curl.curl_set_option curl (Curl.CurlOption.CUSTOMREQUEST "POST")
+  Curl.curl_set_option curl (Curl.CurlOption.URL params.url)
+  let headers := #[
+    if params.provider == .openai
+    then s!"Authorization: Bearer {params.api_key}"
+    else s!"x-api-key: {params.api_key}",
+    "Content-Type: application/json",
+    "Accept: application/json"
+  ]
   if params.provider == .claude then
-    args := args.push "-H"
-    args := args.push "anthropic-version: 2023-06-01"
-  return <- IO.asTask do
-    let resp ← IO.Process.run {
-      cmd := "curl"
-      args := args
-    }
-    let (.ok resp) :=
-       if params.provider == .claude
-       then LeanSlop.Claude.extractModelResponse resp
-       else LeanSlop.OpenAI.extractModelResponse resp
-      | .error s!"failed to decode response from LLM {resp}"
+    Curl.curl_set_option curl (Curl.CurlOption.HTTPHEADER (headers.push "anthropic-version: 2023-06-01"))
+  else
+    Curl.curl_set_option curl (Curl.CurlOption.HTTPHEADER headers)
+  Curl.curl_set_option curl (Curl.CurlOption.COPYPOSTFIELDS payload.compress)
+  Curl.curl_set_option curl (Curl.CurlOption.WRITEDATA response)
+  Curl.curl_set_option curl (Curl.CurlOption.WRITEFUNCTION Curl.writeBytes)
 
+  return <- IO.asTask do
+    Curl.curl_easy_perform curl
+    let resp := String.fromUTF8! (← response.get).data
+    let (.ok resp) :=
+        if params.provider == .claude
+        then LeanSlop.Claude.extractModelResponse resp
+        else LeanSlop.OpenAI.extractModelResponse resp
+      | .error s!"failed to decode response from LLM {resp}"
     let (.some leanCode) := LeanSlop.Prompt.extractLeanBlock resp
       | .error s!"no ```lean block found in response from LLM"
-
     return (leanCode)
 
 def makeCheapRequest (messages: List LeanSlop.Message) := do

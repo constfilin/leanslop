@@ -8,12 +8,12 @@ namespace LeanSlop.Prompt
 
 def extractLeanBlock (s : String) : Option String := do
   let (.some start) := s.find? "```lean" | .none
-  let s := start.extract s.endValidPos
+  let s := s.extract start s.endPos
   let (.some start) := s.find? "lean" | .none
-  let s := start.extract s.endValidPos
+  let s := s.extract start s.endPos
   let (.some end_) := s.find? "```" | .none
-  let s := s.startValidPos.extract end_
-  return s.drop 4 |>.trim
+  let s := s.extract s.startPos end_
+  return s.drop 4 |>.trimAscii |> toString
 
 def getPrefix : MetaM String := do
   let stx ← getRef
@@ -57,4 +57,3 @@ def appendErrorFeedback (prompt : List LeanSlop.Message) (result : Eval.AttemptR
 
 
 end LeanSlop.Prompt
-
