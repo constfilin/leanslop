@@ -1,6 +1,8 @@
 name = "leanslop"
 version = "0.1.0"
 defaultTargets = ["LeanSlop"]
+precompileModules = true
+moreLinkArgs = ["/usr/lib/x86_64-linux-gnu/libcurl.so"]
 
 [[require]]
 name = "leanCurl"
