@@ -28,7 +28,9 @@ dependency. Add the following require in your `lakefile.toml`:
 name = "leanslop"
 git = "https://github.com/constfilin/leanslop"
 ```
-
 You can see a complete example of in [HelloSlop](https://github.com/constfilin/helloslop)
 The rest of the setup and configuration instrucations are the same as in the original 
 [leanslop](https://github.com/kiranandcode/leanslop/blob/main/README.md)
+
+Here's an example of leanslop in action:
+<img width="1176" height="644" alt="image" src="https://github.com/user-attachments/assets/4e916198-3d6e-49e0-9dc4-914f8fc31f3d" />
